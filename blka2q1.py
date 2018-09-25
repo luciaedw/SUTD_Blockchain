@@ -7,14 +7,14 @@ Original file is located at
     https://colab.research.google.com/drive/1LL4prbmkkV3zOBoh3A6r6IP3NjfqxxPM
 """
 
-!pip install ecdsa
-
 import ecdsa
 import json
 from binascii import hexlify, unhexlify
 import hashlib
 import time
 import random
+from ecdsa import SigningKey
+
 
 class Transaction:
     
@@ -273,7 +273,6 @@ class blockChain:
     return True
 
 # Testing Merkle Tree Stuff
-from ecdsa import SigningKey
 
 print("building tree")
 trannies = []
@@ -317,7 +316,6 @@ for i in range (10):
   print(testTree.verifyProof(trannies[index], testProof, testTree.getRoot().getHash()))
 
 # Testing Blockchain Stuff
-from ecdsa import SigningKey
 
 testChain = blockChain()
 
