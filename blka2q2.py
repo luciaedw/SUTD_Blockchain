@@ -351,7 +351,7 @@ for i in range(5):
   print('adding block')
   
   newRootHash = testTree.getRootHash()
-  pBlock = testChain.add(newRootHash, testTree)
+  pBlock = testChain.add(newRootHash, testTree, pBlock)
   testBlocks.append(pBlock)  
   
 print(testChain.genesis.validate())
