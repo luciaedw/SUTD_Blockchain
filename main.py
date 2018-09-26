@@ -5,7 +5,7 @@ import random
 from ecdsa import SigningKey
 from transaction import Transaction
 from merkleTree import merkleTree
-from blockChainV2 import blockChain
+from blockChain import blockChain
 
 # Testing Blockchain Stuff
 
