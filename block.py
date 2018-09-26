@@ -5,7 +5,7 @@ import hashlib
 import time
 
 
-class block:
+class Block:
     def __init__(self, prev, prevHead, root, tree):
         self.prev = prev
         self.prevHead = prevHead

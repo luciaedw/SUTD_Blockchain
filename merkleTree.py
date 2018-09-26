@@ -2,7 +2,7 @@
 
 import hashlib
 
-class merkleNode:
+class MerkleNode:
     def __init__(self, leftChild, rightChild, hashVal):
         self.parent = None
         self.leftChild = leftChild
@@ -28,7 +28,7 @@ class merkleNode:
 
 # Merkle tree implementation, keeps track of nodes(in a dictionary), height, entries(items to be added)
 # rootNode, and the root hash
-class merkleTree:
+class MerkleTree:
     def __init__(self):
         self.nodes = dict()
         self.height = 0
@@ -59,7 +59,7 @@ class merkleTree:
                 item = stack.pop(0)
                 itemHash = hashlib.sha512(('0' + item.to_json()).encode()).hexdigest()
 
-                itemNode = merkleNode(None, None, itemHash)
+                itemNode = MerkleNode(None, None, itemHash)
                 self.nodes[itemHash] = itemNode
                 stack.append(itemNode)
 
@@ -67,7 +67,7 @@ class merkleTree:
             leftNode = stack.pop(0)
             rightNode = stack.pop(0)
             newHash = hashlib.sha512(('1' + leftNode.getHash() + rightNode.getHash()).encode()).hexdigest()
-            newNode = merkleNode(leftNode, rightNode, newHash)
+            newNode = MerkleNode(leftNode, rightNode, newHash)
             stack.append(newNode)
             self.nodes[newHash] = newNode
             leftNode.setParent(newNode)

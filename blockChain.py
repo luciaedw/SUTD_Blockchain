@@ -1,10 +1,10 @@
 # Blockchain class for A2Q2, handles forking and adding to any block in a chain
 
-from block import block
+from Block import Block
 
-class blockChain:
+class Blockchain:
     def __init__(self):
-        self.genesis = block(None, None, '0', None)
+        self.genesis = Block(None, None, '0', None)
         self.ends = [self.genesis]
         self.blocks = [self.genesis]
         self.globalParam = int(
@@ -14,7 +14,7 @@ class blockChain:
     def add(self, treeRoot, tree, parentBlock=None):
         if parentBlock == None:
             parentBlock = self.ends[0]
-        newBlock = block(parentBlock, parentBlock.getHash(), treeRoot, tree)
+        newBlock = Block(parentBlock, parentBlock.getHash(), treeRoot, tree)
         while (True):
             if (int(newBlock.getHash(), 16) <= self.globalParam):
                 self.end = newBlock

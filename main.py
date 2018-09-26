@@ -3,13 +3,13 @@
 from binascii import hexlify
 import random
 from ecdsa import SigningKey
-from transaction import Transaction
-from merkleTree import merkleTree
-from blockChain import blockChain
+from Transaction import Transaction
+from MerkleTree import MerkleTree
+from Blockchain import Blockchain
 
 # Testing Blockchain Stuff
 
-testChain = blockChain()
+testChain = Blockchain()
 testBlocks = []
 for i in range(5):
   print("building tree")
@@ -21,7 +21,7 @@ for i in range(5):
     newTrans.sign(sk)
     trannies.append(newTrans)
 
-  testTree = merkleTree()
+  testTree = MerkleTree()
 
   for t in trannies:
     testTree.add(t)
@@ -50,7 +50,7 @@ for i in range(5):
     newTrans.sign(sk)
     trannies.append(newTrans)
 
-  testTree = merkleTree()
+  testTree = MerkleTree()
 
   for t in trannies:
     testTree.add(t)
