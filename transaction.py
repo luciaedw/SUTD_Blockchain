@@ -1,6 +1,8 @@
 import ecdsa
 import json
+import random
 from binascii import hexlify, unhexlify
+
 
 class Transaction:
 
@@ -10,6 +12,7 @@ class Transaction:
         self.amount = amount
         self.signature = signature
         self.comment = comment
+        self.nonce = random.getrandbits(16)
 
     # Method for making a new transaction using input fields
     @classmethod
@@ -20,6 +23,13 @@ class Transaction:
             sender = hexlify(sender).decode()
         elif type(sender) is ecdsa.keys.VerifyingKey:
             sender = hexlify(sender.to_string()).decode()
+
+        if type(receiver) is str:
+            receiver = receiver
+        elif type(receiver) is bytes:
+            receiver = hexlify(receiver).decode()
+        elif type(receiver) is ecdsa.keys.SigningKey:
+            receiver = hexlify(receiver.to_string()).decode()
         return cls(sender, receiver, amount, signature, comment)
 
     # Print fields for debugging
@@ -61,13 +71,16 @@ class Transaction:
 
     # Validate signature against expected results
     def validate(self):
-        signature = unhexlify(self.signature.encode())
-        headerDict = dict(self.__dict__)
-        del headerDict['signature']
-        headerJson = json.dumps(headerDict, sort_keys=True)
-        header = str(headerJson).encode()
-        vk = ecdsa.VerifyingKey.from_string(unhexlify(self.sender.encode()))
-        return (vk.verify(signature, header))
+        try:
+            signature = unhexlify(self.signature.encode())
+            headerDict = dict(self.__dict__)
+            del headerDict['signature']
+            headerJson = json.dumps(headerDict, sort_keys=True)
+            header = str(headerJson).encode()
+            vk = ecdsa.VerifyingKey.from_string(unhexlify(self.sender.encode()))
+            return (vk.verify(signature, header))
+        except:
+            return False
 
     # Checks of transactions are the same
     def __eq__(self, trans):

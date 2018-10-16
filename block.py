@@ -6,9 +6,13 @@ import time
 
 
 class block:
-    def __init__(self, prev, prevHead, root, tree):
+    def __init__(self, prev, root, tree):
         self.prev = prev
-        self.prevHead = prevHead
+        if not prev:
+            self.prevHead = None
+        else:
+            self.prevHead = self.prev.getHash()
+
         self.root = root
         self.tree = tree
         self.time = int(time.time())
@@ -40,6 +44,7 @@ class block:
         del headerDict['hash']
         jsonTrans = json.dumps(headerDict)
         if self.tree:
-            return (self.hash == hashlib.sha512(jsonTrans.encode()).hexdigest() and self.tree.validate())
+            return (self.getHash() == hashlib.sha512(
+                jsonTrans.encode()).hexdigest() and self.tree.validate()) and self.prev.getHash() == self.prevHead
         else:
-            return (self.hash == hashlib.sha512(jsonTrans.encode()).hexdigest())
+            return (self.getHash() == hashlib.sha512(jsonTrans.encode()).hexdigest())

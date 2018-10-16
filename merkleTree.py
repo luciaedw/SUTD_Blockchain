@@ -2,6 +2,8 @@
 
 import hashlib
 
+
+# Class for nodes in merkle tree, keeps track of parents, children, and height
 class merkleNode:
     def __init__(self, leftChild, rightChild, hashVal):
         self.parent = None
@@ -110,8 +112,11 @@ class merkleTree:
             return False
 
     def validate(self):
+        # gets proof for each entry in the merkle tree and validates, also calls validate on each transaction
+        # exception for transaction 0 which is expected to be a 100 coin gain for the miner
         for transaction in self.entries:
             proof = self.getProof(transaction)
             if not self.verifyProof(transaction, proof, self.rootHash) or not transaction.validate():
-                return False
+                if transaction != self.entries[0] or transaction.amount != 100:
+                    return False
         return True
