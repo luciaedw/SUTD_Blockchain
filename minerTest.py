@@ -2,6 +2,7 @@ from blockChain import blockChain
 from ecdsa import SigningKey
 from binascii import hexlify
 from miner import Miner
+from block import block
 # Miner tests
 miners = []
 testChain = blockChain()
@@ -53,4 +54,11 @@ miners[0].validateNewBlock(miners[1].endBlock)
 # Expecting 2 dictionaries, 1 for each branch, one should have miner 0 with 200 coins and miner 1 with 100, the other
 # should have miner 0 with 80 coins and miner 1 with 220
 print(miners[1].balance)
+print(miners[0].balance)
+
+
+print(testChain.blocks[1].toJson())
+print('zebra')
+print(testChain.blocks[1].tree.entries[0].to_json())
+print(miners[0].addBlockFromJson(testChain.blocks[1].toJson()).toJson())
 print(miners[0].balance)

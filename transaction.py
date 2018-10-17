@@ -6,13 +6,16 @@ from binascii import hexlify, unhexlify
 
 class Transaction:
 
-    def __init__(self, sender, receiver, amount, signature, comment=""):
+    def __init__(self, sender, receiver, amount, signature, comment="", nonce = -1):
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
         self.signature = signature
         self.comment = comment
-        self.nonce = random.getrandbits(16)
+        if nonce == -1:
+            self.nonce = random.getrandbits(16)
+        else:
+            self.nonce = nonce
 
     # Method for making a new transaction using input fields
     @classmethod
@@ -50,14 +53,18 @@ class Transaction:
         jsonData = json.loads(inpStr)
         jsonKeys = list(jsonData.keys())
         if (
-                'sender' not in jsonKeys or 'receiver' not in jsonKeys or 'amount' not in jsonKeys or 'signature' not in jsonKeys):
-            raise ValueError('Missing keys in Json object, expecting: sender, receiver, amount, signature')
+                'sender' not in jsonKeys or
+                'receiver' not in jsonKeys or
+                'amount' not in jsonKeys or
+                'signature' not in jsonKeys or
+                'nonce' not in jsonKeys):
+            raise ValueError('Missing keys in Json object, expecting: sender, receiver, amount, signature, nonce')
         else:
             if ('comment' in jsonKeys):
                 comment = jsonData['comment']
             else:
                 comment = ''
-            return cls(jsonData['sender'], jsonData['receiver'], jsonData['amount'], jsonData['signature'], comment)
+            return cls(jsonData['sender'], jsonData['receiver'], jsonData['amount'], jsonData['signature'], comment, jsonData['nonce'])
 
     # Sign object, takes private key as input
     def sign(self, privKey):

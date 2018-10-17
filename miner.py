@@ -1,3 +1,4 @@
+import json
 from merkleTree import merkleTree
 from transaction import Transaction
 
@@ -128,3 +129,33 @@ class Miner:
     def validateNewBlock(self, newBlock):
         if newBlock.validate():
             self.updateBalances(newBlock)
+
+    # Method to verify and add a new block from another miner, expects block in json form
+    def addBlockFromJson(self, inpStr):
+        # Parse json, make sure needed fields are there
+        jsonData = json.loads(inpStr)
+        jsonKeys = list(jsonData.keys())
+        if 'transactions' not in jsonKeys or 'previousHeader' not in jsonKeys or 'nonce' not in jsonKeys or 'time' not in jsonKeys:
+            raise ValueError('Missing keys in Json object, expecting: transactions, previousHeader, nonce, and time')
+        else:
+            # Convert transactions back into Transaction objects, since they are given as a list of json strings
+            transactionJsons = jsonData['transactions']
+            transactions = []
+            for transaction in transactionJsons:
+                transactions.append(Transaction.from_json(transaction))
+
+            # Make a merkle tree from transactions and build it
+            newTree = merkleTree()
+            for transaction in transactions:
+                newTree.add(transaction)
+
+            newTree.build()
+
+            # Create a new block given json data and merkle tree, then update balances
+            newBlock = self.blockChain.addKnownBlock(newTree, jsonData['previousHeader'], jsonData['nonce'], jsonData['time'])
+            if type(newBlock) is int:
+                print("failed to add block")
+                return newBlock
+
+            self.updateBalances(newBlock)
+            return(newBlock)
