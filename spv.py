@@ -1,5 +1,5 @@
 import hashlib
-#import transaction
+import transaction
 from flask import Flask, request, jsonify
 import sys, getopt
 import requests
@@ -13,12 +13,14 @@ class SPV():
     def __init__(self):
         self.pub_key = None
         self.headers = []#list containing the headers of the longest branch
-        self.transactions = [2, 4, 6]#list
+        self.transactions = [{'receiver':'mary', 'amount':2000}, {'receiver':'anders', 'amount':200}, {'receiver':'mary', 'amount':3000}]#list of all transactions that we have sent
+        self.verified_trans = []#a list of all transactions that we have verified
+        self.unverified_trans = [{'receiver':'mary', 'amount':2000}, {'receiver':'anders', 'amount':200}, {'receiver':'mary', 'amount':3000}]#list of transactions yet to be verified
         self.pub_keys_neighbours = []
         self.nodes = [5000, 5001, 5002]#list of neighbouring nodes
         self.nodes_pk = []
         self.nonce = 0
-        self.miners = []#hard code the miners ports
+        self.miners = [5003]#hard code the miners ports
 
     def updateNonce(self):
         self.nonce += 1
@@ -43,22 +45,38 @@ class SPV():
             self.nodes.add(address)
 
 
-    def getBlockHeader(self, header):
-        #perhanps un load json first?
+    def addBlockHeader(self, header):
+        #perhanps unload json first?
         self.headers.append(header)
 
     def checkLongest(self):
         """Make sure we're on the longest branch and if not, swap. Send requests for end state of full nodes."""
+        for miner in self.miners:
+            None
 
 
-    def verifyTrans(self, trans):
+
+    def verifyTransactions(self):
         """Requests the proof for a transaction and verifies it"""
-        proof=None
-        root=None
-        #proof = miner.getProof(trans) or
-        #trans, proof = miner,getTransProof(pub_key) #we would need the blockheader as well
-        added = verifyProof(trans, proof, root)
-        None
+        print('In verufy')
+        for trans in self.unverified_trans:
+            for miner in self.miners:
+                url = 'http://127.0.0.1:' + str(miner) + '/gettransproof'
+                #print(trans)
+                #print(url)
+                r = requests.get(url, json=trans) #r will contain the block header/(or just the hash of the header) and proof for the transaction
+                #print(r.json()['found'])
+                if r.json()['found'] == True:
+                    #for now move to verified when we found it, we will have to verify the proof too
+                    self.unverified_trans.remove(trans)
+                    self.verified_trans.append(trans)
+        print(self.verified_trans)
+        print(self.unverified_trans)
+                #if r.json()['found'] == True:
+                #    header = r.json()['header'] #or hash, depending on implementation
+                    #if(verifyProof(trans, r.json()['proof'], header['root'])):
+                    #    self.verified_trans.append(trans)
+                    #    break
 
     def sendTrans(self, receiver, amount, signature, nonce):
         #transaction = Transaction(self.pub_key, receiver, amount, signature, nonce)
@@ -104,19 +122,21 @@ def getNodePK():
 @app.route('/run')
 def run():
     """Do some spv stuff"""
+    print('Entering verify')
+    spv_client.verifyTransactions()
     #for trans in spv_client.transactions:
-    for node in spv_client.nodes:
-        url = 'http://127.0.0.1:' + str(node) + '/getpubkey'
-        node_pk = requests.get(url).json()
-        #print(str(node_pk), type(node_pk))
-        if str(node_pk) not in spv_client.nodes_pk:
-            spv_client.nodes_pk.append(str(node_pk))
-            response = 'Added a neighbours pk'
-        else:
-            response = 'We already knew that neighbours pk'
-    #response = 'test'
+    #for node in spv_client.nodes:
+    #    url = 'http://127.0.0.1:' + str(node) + '/getpubkey'
+    #    node_pk = requests.get(url).json()
+    #    #print(str(node_pk), type(node_pk))
+    #    if str(node_pk) not in spv_client.nodes_pk:
+    #        spv_client.nodes_pk.append(str(node_pk))
+    #        response = 'Added a neighbours pk'
+    #    else:
+    #        response = 'We already knew that neighbours pk'
+    response = 'test'
     print(response)
-    return jsonify(response)
+    return response
 
 
 def main(argv):
