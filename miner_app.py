@@ -43,20 +43,42 @@ def getPubKey():
 # @app.route('/getnodespk')
 # def getNodePK():
 #     return json.dumps(spv_client.getNeighbours())
-#
-#
+
+@app.route('/checkblock')
+def checkBlock():
+    resp = miner.blockChain.ends
+    return resp
+
+@app.route('/validateblock', methods = ['POST'])
+def validateBlock():
+    r = request.get_json()
+    print(r)
+    block = miner.addBlockFromJson(r)
+    print(type(block))
+    return 'Block added!'
+    #print(r)
+
 @app.route('/run')
 def run():
     """Do some miner stuff"""
+    end_block = miner.mine()
+    print('mined a block')
+    propogateBlock(end_block)
+    print('Block has been sent to neighbours')
     print(neighbours)
-    for node in neighbours:
-        url = 'http://127.0.0.1:'+str(node)+'/getpubkey'
-        r = requests.get(url)
-        print(r.json())
+
     response = 'test'
     #print(response)
     return jsonify(response)
 
+
+def propogateBlock(block):
+    json_block = block.toJson()
+    print(json_block)
+    for node in neighbours:
+        url = 'http://127.0.0.1:'+str(node)+'/validateblock'
+        requests.post(url, json=json_block)
+        #print(r.json())
 
 def main(argv):
     portnbr = neighbours.pop(int(argv[0]))
