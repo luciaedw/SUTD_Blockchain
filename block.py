@@ -34,6 +34,10 @@ class block:
         print(tree.entries[0].to_json())
         return cls(parentBlock, parentBlock.getHash(), tree.getRootHash(), tree, time, nonce)
 
+    @classmethod
+    def createGenesis(cls):
+        return cls(None, None, '0', None, 0, 0)
+
     def hashSelf(self):
         headerDict = dict(self.__dict__)
         del headerDict['prev']
