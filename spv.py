@@ -2,6 +2,8 @@ import hashlib
 #import transaction
 from flask import Flask, request, jsonify
 import sys, getopt
+import requests
+import json
 
 class SPV():
     """Light weight client used for sending and receiving transactions.
@@ -9,12 +11,14 @@ class SPV():
     Requests proofs of inclusion for it's own transaction."""
 
     def __init__(self):
-        self.pub_keys = None#list of public keys
+        self.pub_key = None
         self.headers = []#list containing the headers of the longest branch
         self.transactions = [2, 4, 6]#list
-        self.pub_key = None
-        self.nodes = set()#a set of neighbouring nodes
+        self.pub_keys_neighbours = []
+        self.nodes = [5000, 5001, 5002]#list of neighbouring nodes
+        self.nodes_pk = []
         self.nonce = 0
+        self.miners = []#hard code the miners ports
 
     def updateNonce(self):
         self.nonce += 1
@@ -62,7 +66,9 @@ class SPV():
         None
 
     def getNeighbours(self):
-        return self.nodes
+        """Return public keys of known nodes"""
+        return self.nodes_pk
+
 
 
 app = Flask(__name__)
@@ -90,13 +96,37 @@ def getTrans(idx):
     trans = spv_client.getTransaction(int(idx))
     return jsonify(trans)
 
+@app.route('/getnodespk')
+def getNodePK():
+    return json.dumps(spv_client.getNeighbours())
+
+
+@app.route('/run')
+def run():
+    """Do some spv stuff"""
+    #for trans in spv_client.transactions:
+    for node in spv_client.nodes:
+        url = 'http://127.0.0.1:' + str(node) + '/getpubkey'
+        node_pk = requests.get(url).json()
+        #print(str(node_pk), type(node_pk))
+        if str(node_pk) not in spv_client.nodes_pk:
+            spv_client.nodes_pk.append(str(node_pk))
+            response = 'Added a neighbours pk'
+        else:
+            response = 'We already knew that neighbours pk'
+    #response = 'test'
+    print(response)
+    return jsonify(response)
+
+
 def main(argv):
-    #argv contains: [spv.pub_key, port]
+    #argv contains: [spv.pub_key, port[idx]]
     #print('First arg: ' + str(argv[0]))
     #print('Second arg: ' + str(argv[1]))
     spv_client.setPubKey(argv[0])
     #app=Flask(__name__)
-    app.run(port=argv[1])
+    portnbr = spv_client.nodes.pop(int(argv[1]))
+    app.run(port=portnbr)
 
 if __name__== "__main__":
     main(sys.argv[1:])
