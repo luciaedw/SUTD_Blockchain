@@ -44,10 +44,19 @@ def getPubKey():
 # def getNodePK():
 #     return json.dumps(spv_client.getNeighbours())
 
+@app.route('/chainbalance')
+def returnChainBalance():
+    return jsonify(miner.currentChainBalance)
+
+@app.route('/mybalance')
+def returnBalance():
+    return jsonify(miner.balance)
+
 @app.route('/checkblock')
 def checkBlock():
-    resp = miner.blockChain.ends
-    return resp
+    resp = miner.blockChain.ends[0]
+    print(resp.hash)
+    return 'testing'
 
 @app.route('/validateblock', methods = ['POST'])
 def validateBlock():

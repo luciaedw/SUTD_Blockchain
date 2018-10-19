@@ -5,7 +5,8 @@ from block import block
 
 class blockChain:
     def __init__(self):
-        self.genesis = block.createBlock(None, '0', None)
+        #self.genesis = block.createBlock(None, '0', None)
+        self.genesis = block.createGenesis()
         self.ends = [self.genesis]
         self.blocks = [self.genesis]
         self.allHeaders = [self.genesis.hash]
