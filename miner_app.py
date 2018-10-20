@@ -49,21 +49,6 @@ def tellNeighbours():
         requests.post(url, json=miner.pubKey)
     return 'Sent public key'
 
-
-# @app.route('/updateNonce', methods=['GET'])
-# def updateNonce():
-#     spv_client.updateNonce()
-#     return jsonify(spv_client.getNonce())
-#
-# @app.route('/gettrans/<idx>')#, methods=['POST', 'GET'])
-# def getTrans(idx):
-#     trans = spv_client.getTransaction(int(idx))
-#     return jsonify(trans)
-#
-# @app.route('/getnodespk')
-# def getNodePK():
-#     return json.dumps(spv_client.getNeighbours())
-
 @app.route('/transactionlist')
 def returnTransactionList():
     return jsonify(miner.allTransactions)

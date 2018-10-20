@@ -1,5 +1,18 @@
+from flask import Flask, jsonify, request
+import requests, json, hashlib
+import spv
+import sys, getopt
+from ecdsa import SigningKey
+from binascii import hexlify
+from transaction import Transaction
+
 app = Flask(__name__)
-spv_client = SPV()
+#testChain = blockChain()
+sk = SigningKey.generate() # uses NIST192p
+vk = sk.get_verifying_key().to_string()
+miner = Miner(sk, hexlify(vk).decode(), testChain)
+neighbours = [5000, 5001]#, 5002]
+port = None
 
 @app.route('/')
 def index():
@@ -49,13 +62,10 @@ def run():
 
 
 def main(argv):
-    #argv contains: [spv.pub_key, port[idx]]
-    #print('First arg: ' + str(argv[0]))
-    #print('Second arg: ' + str(argv[1]))
-    spv_client.setPubKey(argv[0])
-    #app=Flask(__name__)
-    portnbr = spv_client.nodes.pop(int(argv[1]))
+    portnbr = neighbours.pop(int(argv[0]))
+    port = portnbr
     app.run(port=portnbr)
+
 
 if __name__== "__main__":
     main(sys.argv[1:])

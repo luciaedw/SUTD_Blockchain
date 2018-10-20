@@ -1,9 +1,5 @@
-import hashlib
-import transaction
-from flask import Flask, request, jsonify
-import sys, getopt
 import requests
-import json
+import json, hashlib
 from transaction import Transaction
 from merkleTree import merkleTree
 
@@ -12,8 +8,10 @@ class SPV():
     Can validate blocks without the entire block(just header),through requesting proof of inclusion.
     Requests proofs of inclusion for it's own transaction."""
 
-    def __init__(self):
-        self.pub_key = None
+    def __init__(self, privKey, pubKey):
+        self.pub_key = pubKey
+        self.private_key = privKey
+        self.balance = {}
         self.headers = []#list containing the headers of the longest branch
         self.transactions = [{'receiver':'mary', 'amount':2000}, {'receiver':'anders', 'amount':200}, {'receiver':'mary', 'amount':3000}]#list of all transactions that we have sent
         self.verified_trans = []#a list of all transactions that we have verified
@@ -32,16 +30,6 @@ class SPV():
     def setPubKey(self, pub_key):
         self.pub_key = pub_key
 
-    def getNonce(self):
-        return self.nonce
-
-    def addNeighbour(self, address):
-        """Might just make a static list of neighbours"""
-        #print('Address: %' %address)
-        if address != None:
-            self.nodes.add(address)
-
-
     def addBlockHeader(self, header):
         #perhanps unload json first?
         self.headers.append(header)
@@ -51,11 +39,9 @@ class SPV():
         for miner in self.miners:
             None
 
-
-
     def verifyTransactions(self):
         """Requests the proof for a transaction and verifies it"""
-        print('In verufy')
+        print('In verify')
         for trans in self.unverified_trans:
             for miner in self.miners:
                 url = 'http://127.0.0.1:' + str(miner) + '/gettransproof'
@@ -64,9 +50,10 @@ class SPV():
                 r = requests.get(url, json=trans) #r will contain the block header/(or just the hash of the header) and proof for the transaction
                 #print(r.json()['found'])
                 if r.json()['found'] == True:
-                    #for now move to verified when we found it, we will have to verify the proof too
-                    self.unverified_trans.remove(trans)
-                    self.verified_trans.append(trans)
+                    verified = self.verifyProof(trans, r['proof'], r['root'])
+                    if verified:
+                        self.unverified_trans.remove(trans)
+                        self.verified_trans.append(trans)
         print(self.verified_trans)
         print(self.unverified_trans)
                 #if r.json()['found'] == True:
@@ -75,11 +62,27 @@ class SPV():
                     #    self.verified_trans.append(trans)
                     #    break
 
-    def sendTrans(self, receiver, amount, signature, nonce):
-        #transaction = Transaction(self.pub_key, receiver, amount, signature, nonce)
-        """Create a new transaction and broadcast it to the network"""
-        None
+    def createTransaction(self, receiver, amount, message):
+        newTransaction = Transaction.new(self.pubKey, receiver, amount, 'placeholder', message)
+        newTransaction.sign(self.privKey)
+        return newTransaction
 
     def getNeighbours(self):
         """Return public keys of known nodes"""
         return self.nodes_pk
+
+
+    def verifyProof(self, transaction, proof, root):
+        transHash = hashlib.sha512(('0' + transaction.to_json()).encode()).hexdigest()
+        nextHash = transHash
+        while (len(proof) > 0):
+            partnerHash = proof.pop(0)
+            if partnerHash[0] == 'left':
+                nextHash = hashlib.sha512(("1" + partnerHash[1] + nextHash).encode()).hexdigest()
+            else:
+                nextHash = hashlib.sha512(("1" + nextHash + partnerHash[1]).encode()).hexdigest()
+
+        if (nextHash == root):
+            return True
+        else:
+            return False
