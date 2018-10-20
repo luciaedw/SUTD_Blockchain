@@ -12,6 +12,7 @@ class Miner:
         self.allTransactions = []  # List of current transactions, used in mine to generate merkle tree
         self.transactionHistory = []  # History of all transaction signatures, prevent double spend
         self.endBlock = blockChain.resolve()[1]
+        self.neighbours = [] #list of public keys of neighbours
 
     # Function for adding 100 coins to the miner as their first transaction
     def addReward(self):
@@ -55,7 +56,7 @@ class Miner:
 
         # Check if transaction is valid using: validate function, signature not used previously, sender has enough money in the current chain
         # If checks are ok, append to local list and modify working balance dict
-        if type(transaction) is not Transaction:
+        if transaction.__class__.__name__ is not 'Transaction':
             print("transaction is not a Transaction class")
         elif not transaction.validate():
             print("transaction is not valid")
@@ -81,6 +82,7 @@ class Miner:
 
     # helper function to update a balance dictionary given a new block
     def updateBalanceDict(self, someBlock, endPos):
+        print('In updatebalancedict')
         # Extract all transactions in the block, and pick the correct balance table using index of end block
         newTransactions = someBlock.tree.entries
         balanceTable = self.balance[endPos]
@@ -132,6 +134,7 @@ class Miner:
 
     # Method to verify and add a new block from another miner, expects block in json form
     def addBlockFromJson(self, inpStr):
+        print('In add block')
         # Parse json, make sure needed fields are there
         jsonData = json.loads(inpStr)
         jsonKeys = list(jsonData.keys())
@@ -158,4 +161,6 @@ class Miner:
                 return newBlock
 
             self.updateBalances(newBlock)
+            print('We added the block')
+            print(self.currentChainBalance)
             return(newBlock)
