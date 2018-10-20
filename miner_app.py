@@ -112,15 +112,13 @@ def addTransaction():
     miner.addTransaction(trans)
     return jsonify('test')
 
-
-
 @app.route('/newtrans', methods=['POST'])
 def makeTransaction():
     """Make a transaction and send to other miners"""
     r = request.get_json()
     r['receiver'] = miner.neighbours[0]
     trans = miner.createTransaction(r['receiver'], r['amount'], r['message'])
-    print(trans)
+    #print(trans)
     for node in neighbours:
         url = 'http://127.0.0.1:' + str(node) + '/addtrans'
         requests.post(url, json=trans.to_json())
@@ -128,7 +126,7 @@ def makeTransaction():
 
 def propogateBlock(block):
     json_block = block.toJson()
-    print(json_block)
+    #print(json_block)
     for node in neighbours:
         url = 'http://127.0.0.1:'+str(node)+'/validateblock'
         requests.post(url, json=json_block)
@@ -138,24 +136,6 @@ def main(argv):
     portnbr = neighbours.pop(int(argv[0]))
     port = portnbr
     app.run(port=portnbr)
-
-def from_json(inpStr):
-    jsonData = json.loads(inpStr)
-    jsonKeys = list(jsonData.keys())
-    if (
-            'sender' not in jsonKeys or
-            'receiver' not in jsonKeys or
-            'amount' not in jsonKeys or
-            'signature' not in jsonKeys or
-            'nonce' not in jsonKeys):
-        print('uh oh')
-        raise ValueError('Missing keys in Json object, expecting: sender, receiver, amount, signature, nonce')
-    else:
-        if ('comment' in jsonKeys):
-            comment = jsonData['comment']
-        else:
-            comment = ''
-        return Transaction(jsonData['sender'], jsonData['receiver'], jsonData['amount'], jsonData['signature'], comment, jsonData['nonce'])
 
 
 if __name__== "__main__":
