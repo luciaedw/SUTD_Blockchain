@@ -7,7 +7,7 @@ from flask import jsonify
 newTrans= {'receiver':None, 'amount':None, 'message':None}
 
 
-spvs = [5002] #port numbers of spv-clients
+spvs = [5003] #port numbers of spv-clients
 miners = [5000, 5001]#, 5001, 5002]#port numbers of miners
 loops = 1 #we're going to run each spv for t seconds and y loops
 t = 0.1 #how many seconds each time block is
@@ -15,7 +15,7 @@ j = 0
 t_end = time.time() + t
 
 """Start by sending public key to all neighbours"""
-for port in miners:
+for port in (miners + spvs):
     url = 'http://127.0.0.1:' + str(port) + '/tellneighbours'
     requests.get(url)
 

@@ -17,7 +17,8 @@ testChain = blockChain()
 sk = SigningKey.generate() # uses NIST192p
 vk = sk.get_verifying_key().to_string()
 miner = Miner(sk, hexlify(vk).decode(), testChain)
-neighbours = [5000, 5001]#, 5002]
+neighbours = [5000, 5001]#, 5002]#, 5002]
+spvs=[5003]#, 5004]
 port = None
 
 @app.route('/')
@@ -35,15 +36,15 @@ def getPubKey():
 @app.route('/addpk', methods=['POST'])
 def addPublicKey():
     data = request.get_json()
-    print(data)
     print('Public key of neighbour: ' + str(data))
     miner.neighbours.append(data)
+    print('Added neighbour')
     return 'Added neighbour'
 
 
 @app.route('/tellneighbours')
 def tellNeighbours():
-    for node in neighbours:
+    for node in (neighbours + spvs):
         data = {'pk':miner.pubKey}
         url = 'http://127.0.0.1:'+str(node)+'/addpk'
         requests.post(url, json=miner.pubKey)
@@ -111,11 +112,16 @@ def makeTransaction():
 
 def propogateBlock(block):
     json_block = block.toJson()
+    header = {'prevHead':block.prev.getHash(), 'root':block.root, 'time':block.time, 'nonce':block.nonce}
     #print(json_block)
     for node in neighbours:
         url = 'http://127.0.0.1:'+str(node)+'/validateblock'
         requests.post(url, json=json_block)
         #print(r.json())
+    for node in spvs:
+        url = 'http://127.0.0.1:' + str(node) + '/addheader'
+        requests.post(url, json=header)
+        # print(r.json())
 
 def main(argv):
     portnbr = neighbours.pop(int(argv[0]))
